@@ -1,4 +1,4 @@
-# How to Defance Lebron James
+# How to Defend Lebron James
 
 ## Project Overview
 
