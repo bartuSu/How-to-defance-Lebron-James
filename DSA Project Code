@@ -1,0 +1,119 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+#1.Load Data
+df=pd.read_csv("1_lebron_james_shot_chart_1_2023.csv")
+#check my data 
+df.head()
+#2.Data Cleaning
+#Delete useless values in the data
+df=df.drop(columns=["lead","color","opponent","team"])
+#Delete 1st OT and 2nd OT because there is no enough information  in this periods 
+df = df[df["qtr"] !="1st OT"]
+df = df[df["qtr"] !="2nd OT"]
+#Change the result values integer missing attempts=0,succesful attempts=1 
+df["result"] = df["result"].astype(int)
+#check it 
+df.head()
+#Create a function for determinating shooting zones 
+def shot_zones(distance):
+  if (distance<=5):
+    return "paint"
+  elif (distance<=15):
+    return "mid range"
+  else:
+    return "3 points"
+#imply our data
+df["zone"] = df["distance_ft"].apply(shot_zones)
+# In this section, we calculate the minimum and maximum values of the 'left' (horizontal) and 'top' (vertical) coordinates.
+# This helps us understand how the dimensions of the basketball court are represented in the dataset.
+# It provides a reference for interpreting shot positions and their spatial distribution on the court.
+min_left = df["left"].min()
+max_left = df["left"].max()
+min_top = df["top"].min()
+max_top = df["top"].max()
+print("Min left:", min_left)
+print("Max left:", max_left)
+print("Min top:", min_top)
+print("Max top:", max_top)
+#I want to center of the horizontal value is 0 right values negative and left values are positives 
+df["left"]=df["left"]-239
+#Create a function for determinating sides 
+def showSides(x):
+  if x<-80:
+    return "left side"
+  elif x>80:
+    return "right side"
+  else:
+    return "middle"
+#imply our data
+df["side"]=df["left"].apply(showSides)
+# Here, we create a new column called 'shooting_area' by combining the 'side' and 'zone' columns.
+# This allows us to define more specific shooting regions on the court
+# It helps in analyzing shot patterns based on detailed location categories.
+df["shooting_area"]=df["side"]+"-"+df["zone"]
+
+#3.Correlation Analysis
+#Correlation Matrix
+df["numeric_qtr"] = df["qtr"].str.extract(r"(\d)").astype(int) #because of string qtr values I can not create correlation matrix so I change my string qtr values to int
+numeric_columns = ["distance_ft","numeric_qtr", "result"]
+corr_matrix = df[numeric_columns].corr()
+plt.figure(figsize=(10,8))
+sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5)
+plt.title("Correlation Matrix-LeBron James Shot Data")
+plt.tight_layout()
+plt.show()
+
+#4.Data Visualizations
+# This barplot visualizes LeBron James' field goals percantage across game quarters and shooting areas.
+#This plot helps to observe how shot location and game timing impact LeBron's shooting efficiency.
+plt.figure(figsize=(14, 7))
+sns.barplot(
+    data=df,
+    x="qtr",
+    y="result",
+    hue="shooting_area",
+    estimator="mean",
+    ci=None,
+    palette="Reds"
+)
+plt.title("Field Goal(Fg) in terms of quarters and areas")
+plt.xlabel("Quarter")
+plt.ylabel("Field Goal")
+plt.ylim(0, 1)
+plt.legend(title="Areas", bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+#This boxplot visualizes Lebron James' shoots distance acrross game quarters
+#This plot helps to determine how game timing impact Lebron James' shooting decisions 
+plt.figure(figsize=(12, 7))
+sns.boxplot(
+    data=df,
+    x="qtr",
+    y="distance_ft",
+    palette="coolwarm"
+)
+plt.title("Shot Distance Distribution by Quarter")
+plt.xlabel("Quarter")
+plt.ylabel("Distance(feet)")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+# Create scatter plot of shooting accuracy by horizontal court position
+## Group shots by horizontal position and calculate average shooting percentage
+accuracy = df.groupby("left")["result"].mean().reset_index()
+plt.figure(figsize=(12, 6))
+sns.scatterplot(data=accuracy, x="left", y="result", color="blue")
+plt.axvline(0, color='black', linestyle='--', label='Hoop Center')
+plt.title("Shot Accuracy by Left Position (Centered at 0)")
+plt.xlabel("Position on Court (Left - Centered)")
+plt.ylabel("Fidel Goal Percantage")
+plt.grid(True)
+plt.legend()
+plt.show()
+
+
+
+
