@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from scipy.stats import pearsonr
+import statsmodels.api as sm
 #1.Load Data
 df=pd.read_csv("1_lebron_james_shot_chart_1_2023.csv")
 #check my data 
@@ -86,6 +88,7 @@ plt.legend(title="Areas", bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.grid(True)
 plt.tight_layout()
 plt.show()
+
 #This boxplot visualizes Lebron James' shoots distance acrross game quarters
 #This plot helps to determine how game timing impact Lebron James' shooting decisions 
 plt.figure(figsize=(12, 7))
@@ -101,6 +104,7 @@ plt.ylabel("Distance(feet)")
 plt.grid(True)
 plt.tight_layout()
 plt.show()
+
 # Create scatter plot of shooting accuracy by horizontal court position
 ## Group shots by horizontal position and calculate average shooting percentage
 accuracy = df.groupby("left")["result"].mean().reset_index()
@@ -113,6 +117,69 @@ plt.ylabel("Fidel Goal Percantage")
 plt.grid(True)
 plt.legend()
 plt.show()
+
+#5.Regression Analysis
+#Shot Made vs Distance
+plt.figure(figsize=(10, 6))
+sns.regplot(
+    data=df,
+    x="distance_ft",
+    y="result",
+    logistic=True,
+    ci=95,
+    scatter_kws={'alpha':0.5, 's':20, 'color': 'blue'},
+    line_kws={'color': 'red'},
+    y_jitter=0.05
+)
+plt.title("Shot Distance vs Shot Success")
+plt.xlabel("Shot Distance (ft)")
+plt.ylabel("Shot Made (1 = Yes, 0 = No)")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+#Shot made vs Horizantol location
+plt.figure(figsize=(10, 6))
+sns.regplot(
+    data=df,
+    x="left",           
+    y="result",         
+    logistic=True,
+    color="red"
+)
+plt.title("Horizontal Shot Position vs Shot Success")
+plt.xlabel("Horizontal Shot Position (Right →Left)")
+plt.ylabel("Shot Success (1 = Made, 0 = Missed)")
+plt.ylim(-0.05, 1.05)
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# 6. Hypothesis Testing
+#Hypothesis Testing Distance vs number of successful shoots
+correlation, p_value = pearsonr(df['distance_ft'], df['result'])
+print("Correlation:", correlation)
+print("P-Value:", p_value)
+if p_value < 0.05:
+    print("There is a significant relationship.")
+else:
+    print("There is no significant relationship.")
+
+#Hypothesis Testing Horizontal location vs number of successful shoots
+correlation, p_value = pearsonr(df['left'], df['result'])
+print("Correlation:", correlation)
+print("P-Value:", p_value)
+if p_value < 0.05:
+    print("There is a significant relationship.")
+else:
+    print("There is no significant relationship.")
+
+
+import os
+print(os.getcwd())
+
+
+
 
 
 
