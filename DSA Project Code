@@ -208,10 +208,19 @@ print("Random Forest Classification Report:")
 print(classification_report(y_test, y_prediction_rf))
 print("Accuracy:", accuracy_score(y_test, y_prediction_rf))
 
-#Visiualize Confusion Matrix 
+#Visiualize Confusion Matrix for Random Forest method 
 cm = confusion_matrix(y_test, y_prediction_rf)
 sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
 plt.title("Random Forest Confusion Matrix")
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.show()
+
+#Visiualize Confusion Matrix for Logistic Regression
+y_pred_logreg = logreg_model.predict(X_test_scaled)
+cm_log = confusion_matrix(y_test, y_pred_logreg)
+sns.heatmap(cm_log, annot=True, fmt="d", cmap="Greens")
+plt.title("Logistic Regression Confusion Matrix")
 plt.xlabel("Predicted")
 plt.ylabel("Actual")
 plt.show()
